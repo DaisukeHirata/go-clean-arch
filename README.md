@@ -22,45 +22,21 @@ The explanation about this project's structure  can read from this medium's post
 ### How To Run This Project
 
 ```bash
-#move to directory
-cd $GOPATH/src/github.com/bxcodec
+# GET WITH GO GET
+go get github.com/DaisukeHirata/go-clean-arch
 
-# Clone into YOUR $GOPATH/src
-git clone https://github.com/bxcodec/go-clean-arch.git
+# Go to directory
 
-#move to project
-cd go-clean-arch
+cd $GOPATH/src/github.com/DaisukeHirata/go-clean-arch
 
 # Install Dependencies
 dep ensure
 
-# Make File
-make
+# up mysql
+docker-compose up --build
 
 # Run Project
-go run main.go
-
+fresh
 ```
-
-Or
-
-```bash
-# GET WITH GO GET
-go get github.com/bxcodec/go-clean-arch
-
-# Go to directory
-
-cd $GOPATH/src/github.com/bxcodec/go-clean-arch
-
-# Install Dependencies
-glide install -v
-
-# Make File
-make
-
-# Run Project
-go run main.go
-```
-
 
 > Make Sure you have run the article.sql in your mysql
