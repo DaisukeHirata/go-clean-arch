@@ -1,6 +1,7 @@
 package mysql_test
 
 import (
+	"database/sql/driver"
 	"testing"
 	"time"
 
@@ -9,6 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
+
+type AnyTime struct{}
+
+// Match satisfies sqlmock.Argument interface
+func (a AnyTime) Match(v driver.Value) bool {
+	_, ok := v.(time.Time)
+	return ok
+}
 
 func TestFetch(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -67,7 +76,7 @@ func TestStore(t *testing.T) {
 
 	query := "INSERT  article SET title=\\? , content=\\? , updated_at=\\? , created_at=\\?"
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(ar.Title, ar.Content, ar.CreatedAt, ar.UpdatedAt).WillReturnResult(sqlmock.NewResult(12, 1))
+	prep.ExpectExec().WithArgs(ar.Title, ar.Content, AnyTime{}, AnyTime{}).WillReturnResult(sqlmock.NewResult(12, 1))
 
 	a := articleRepo.NewMysqlArticleRepository(db)
 
@@ -135,7 +144,7 @@ func TestUpdate(t *testing.T) {
 	query := "UPDATE article set title=\\?, content=\\?, updated_at=\\? WHERE ID = \\?"
 
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(ar.Title, ar.Content, ar.UpdatedAt, ar.ID).WillReturnResult(sqlmock.NewResult(12, 1))
+	prep.ExpectExec().WithArgs(ar.Title, ar.Content, AnyTime{}, ar.ID).WillReturnResult(sqlmock.NewResult(12, 1))
 
 	a := articleRepo.NewMysqlArticleRepository(db)
 
