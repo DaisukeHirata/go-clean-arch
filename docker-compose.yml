@@ -1,0 +1,17 @@
+store:
+    # data-only container
+    image: mysql:latest # reuse postgres container
+    volumes:
+        - /var/lib/mysql
+    command: "true"
+
+mysql:
+    image: mysql:latest
+    ports:
+        - "3306:3306" # host:container
+    volumes_from:
+        - store # connect postgres and the data-only container
+    environment:
+        - MYSQL_DATABASE=article
+        - MYSQL_ROOT_PASSWORD=password
+        # you can also set the postgres username and database name

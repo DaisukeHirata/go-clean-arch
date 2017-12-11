@@ -1,4 +1,5 @@
 
 vendor/
 article_clean
+tmp/
 _*

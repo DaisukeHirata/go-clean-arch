@@ -5,51 +5,69 @@ import (
 	"fmt"
 	"net/url"
 
-	httpDeliver "github.com/bxcodec/go-clean-arch/article/delivery/http"
-	articleRepo "github.com/bxcodec/go-clean-arch/article/repository/mysql"
-	articleUcase "github.com/bxcodec/go-clean-arch/article/usecase"
 	cfg "github.com/bxcodec/go-clean-arch/config/env"
-	"github.com/bxcodec/go-clean-arch/config/middleware"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo"
 )
 
-var config cfg.Config
+var (
+	a      App
+	config cfg.Config
+)
+
+// App is application struct hold router and db connection
+type App struct {
+	Router *echo.Echo
+	DB     *sql.DB
+}
 
 func init() {
 	config = cfg.NewViperConfig()
-
 	if config.GetBool(`debug`) {
 		fmt.Println("Service RUN on DEBUG mode")
 	}
-
 }
 
 func main() {
+	a = App{}
 
-	dbHost := config.GetString(`database.host`)
-	dbPort := config.GetString(`database.port`)
-	dbUser := config.GetString(`database.user`)
-	dbPass := config.GetString(`database.pass`)
-	dbName := config.GetString(`database.name`)
-	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+	a.initializeDB(
+		config.GetString(`database.user`),
+		config.GetString(`database.name`),
+		config.GetString(`database.pass`),
+		config.GetString(`database.host`),
+		config.GetString(`database.port`),
+	)
+
+	a.initializeRouter()
+
+	a.setupHandler()
+
+	a.run(config.GetString("server.address"))
+}
+
+func (a *App) initializeDB(user, dbname, password, host, port string) {
+
+	connectionString := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s",
+		user,
+		password,
+		host,
+		port,
+		dbname)
+
 	val := url.Values{}
 	val.Add("parseTime", "1")
-	val.Add("loc", "Asia/Jakarta")
-	dsn := fmt.Sprintf("%s?%s", connection, val.Encode())
-	dbConn, err := sql.Open(`mysql`, dsn)
+	val.Add("loc", "Asia/Tokyo")
+	dsn := fmt.Sprintf("%s?%s", connectionString, val.Encode())
+
+	var err error
+	a.DB, err = sql.Open(`mysql`, dsn)
 	if err != nil && config.GetBool("debug") {
 		fmt.Println(err)
 	}
-	defer dbConn.Close()
-	e := echo.New()
-	middL := middleware.InitMiddleware()
-	e.Use(middL.CORS)
+}
 
-	ar := articleRepo.NewMysqlArticleRepository(dbConn)
-	au := articleUcase.NewArticleUsecase(ar)
-
-	httpDeliver.NewArticleHttpHandler(e, au)
-
-	e.Start(config.GetString("server.address"))
+func (a *App) run(serveraddr string) {
+	a.Router.Start(serveraddr)
 }

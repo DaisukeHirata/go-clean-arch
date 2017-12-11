@@ -32,7 +32,7 @@ git clone https://github.com/bxcodec/go-clean-arch.git
 cd go-clean-arch
 
 # Install Dependencies
-glide install -v
+dep ensure
 
 # Make File
 make
